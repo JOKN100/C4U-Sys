@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Center For You | نظام الإدارة المتطور</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="icon" href="Center Logo.png" type="image/png">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- تفعيل الوضع المظلم في Tailwind -->
+  <script>
+    tailwind.config = { darkMode: 'class' }
+  </script>
+  
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    :root { --primary: #381163; --accent: #d1621f; }
+    html, body {
+      max-width: 100vw;
+      overflow-x: hidden;
+    }
+    body { 
+      font-family: 'Tajawal', sans-serif; 
+      background-color: #f8f9fc;
+      background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+      background-attachment: fixed;
+      transition: background-color 0.5s ease;
+    }
+    html.dark body {
+      background-color: #0f172a;
+      background-image: radial-gradient(at 0% 0%, hsla(253,16%,12%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,15%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,15%,1) 0, transparent 50%);
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(56, 17, 99, 0.15); border-radius: 10px; }
+    html.dark .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); }
+    .custom-scrollbar:hover::-webkit-scrollbar-thumb { background: rgba(56, 17, 99, 0.3); }
+    
+    .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.5); }
+    html.dark .glass-card { background: rgba(30, 41, 59, 0.75); border: 1px solid rgba(255, 255, 255, 0.05); }
+    
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-up { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  </style>
+</head>
+<body class="text-gray-800 dark:text-gray-100 antialiased min-h-screen">
+  
+  <div id="root"></div>
+
+  <script type="text/babel" data-type="module">
+    import React, { useState, useEffect, useMemo, useRef } from 'https://esm.sh/react@18.2.0';
+    import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
+    import { 
+      Users, LayoutDashboard, CalendarCheck, Wallet, Plus, Trash2, 
+      TrendingUp, TrendingDown, DollarSign, Search, Edit, Download, 
+      Filter, FileSpreadsheet, Sparkles, ChevronLeft, Moon, Sun,
+      MessageCircle, Printer, Eye, X, AlertCircle, LogOut, CheckCircle, 
+      HelpCircle, FileText, QrCode, Database, ScanLine, Smartphone, Send, ArrowUpDown
+    } from 'https://esm.sh/lucide-react@0.344.0';
+    
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js';
+    import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, updateDoc } from 'https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC8Rr7SzoPqSBXTO8dnQ-sLeG8pSKnXtng",
+      authDomain: "center4u-system.firebaseapp.com",
+      projectId: "center4u-system",
+      storageBucket: "center4u-system.firebasestorage.app",
+      messagingSenderId: "686914654039",
+      appId: "1:686914654039:web:43b989a0fbbb415c5df812"
+    };
+
+    let app, auth, db;
+    if (firebaseConfig && firebaseConfig.apiKey) {
+      try { app = initializeApp(firebaseConfig); auth = getAuth(app); db = getFirestore(app); } 
+      catch (error) { console.error("Firebase init error:", error); }
+    }
+
+    const LOGO_URL = "Center Logo.png";
+
+    function LoginScreen() {
+      const [email, setEmail] = useState('');
+      const [password, setPassword] = useState('');
+      const [error, setError] = useState('');
+      const [loading, setLoading] = useState(false);
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+        } catch (err) {
+          setError('البريد الإلكتروني أو كلمة المرور غير صحيحة.');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      return (
+        <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" dir="rtl">
+          <div className="absolute top-[-10%] right-[-5%] w-72 sm:w-96 h-72 sm:h-96 bg-[#d1621f] rounded-full mix-blend-multiply filter blur-[90px] sm:blur-[128px] opacity-40 animate-blob"></div>
+          <div className="absolute bottom-[-10%] left-[-10%] w-72 sm:w-96 h-72 sm:h-96 bg-[#381163] rounded-full mix-blend-multiply filter blur-[90px] sm:blur-[128px] opacity-60 animate-blob animation-delay-2000"></div>
+          
+          <div className="glass-card p-6 sm:p-12 rounded-3xl sm:rounded-[3rem] w-full max-w-lg shadow-2xl relative z-10 animate-fade-up border-t border-l border-white/40 dark:border-white/10 mx-2">
+            <div className="text-center mb-8 sm:mb-10">
+              <div className="h-24 sm:h-28 px-4 sm:px-6 py-3 sm:py-4 bg-white rounded-2xl sm:rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl w-max min-w-[120px] sm:min-w-[150px] transform -rotate-3 hover:rotate-0 transition-transform duration-300">
+                 <img src={LOGO_URL} alt="Logo" className="h-full w-auto object-contain" />
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-black text-[#381163] dark:text-white mb-2">تسجيل الدخول</h2>
+              <p className="text-gray-500 dark:text-gray-400 font-medium text-base sm:text-lg">بوابة النظام الآمنة</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+              <div className="relative">
+                <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="البريد الإلكتروني" className="w-full px-5 sm:px-6 py-4 sm:py-5 bg-white/50 dark:bg-slate-800/50 border-2 border-white/60 dark:border-slate-600 rounded-2xl sm:rounded-3xl text-gray-800 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-[#381163]/20 focus:border-[#381163]/50 transition-all font-bold text-base sm:text-lg tracking-wide backdrop-blur-sm shadow-inner" dir="ltr" />
+              </div>
+              <div className="relative">
+                <input required type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="كلمة المرور" className="w-full px-5 sm:px-6 py-4 sm:py-5 bg-white/50 dark:bg-slate-800/50 border-2 border-white/60 dark:border-slate-600 rounded-2xl sm:rounded-3xl text-gray-800 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-[#381163]/20 focus:border-[#381163]/50 transition-all font-bold text-center text-lg sm:text-xl tracking-widest backdrop-blur-sm shadow-inner" dir="ltr" />
+              </div>
+              {error && <p className="text-[#ef4444] text-xs sm:text-sm font-bold text-center bg-red-50 dark:bg-red-500/20 py-3 rounded-xl sm:rounded-2xl border border-red-100 dark:border-red-500/30">{error}</p>}
+              <button disabled={loading} type="submit" className="w-full relative group overflow-hidden bg-[#381163] text-white py-4 sm:py-5 rounded-2xl sm:rounded-3xl font-black text-lg sm:text-xl shadow-[0_8px_30px_rgb(56,17,99,0.3)] hover:shadow-[0_8px_30px_rgb(56,17,99,0.5)] transition-all hover:-translate-y-1 disabled:opacity-70 disabled:hover:translate-y-0">
+                <span className="relative z-10 flex items-center justify-center gap-2">{loading ? 'جاري الدخول...' : 'دخول للنظام'} <ChevronLeft size={24} /></span>
+                <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-[#d1621f] to-[#e87a35] opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out"></div>
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
+      useEffect(() => {
+        if (isDarkMode) { document.documentElement.classList.add('dark'); localStorage.setItem('theme', 'dark'); } 
+        else { document.documentElement.classList.remove('dark'); localStorage.setItem('theme', 'light'); }
+      }, [isDarkMode]);
+      const toggleTheme = () => setIsDarkMode(!isDarkMode);
+
+      const [isLoggedIn, setIsLoggedIn] = useState(false);
+      useEffect(() => {
+        if (!auth) return;
+        const unsubscribe = onAuthStateChanged(auth, (user) => { setIsLoggedIn(!!user); });
+        return () => unsubscribe();
+      }, []);
+      const handleLogout = () => { signOut(auth); };
+
+      const [activeTab, setActiveTab] = useState('dashboard');
+      const [students, setStudents] = useState([]);
+      const [attendance, setAttendance] = useState({});
+      const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
+      const [transactions, setTransactions] = useState([]);
+
+      const [showStudentForm, setShowStudentForm] = useState(false);
+      const [editingStudentId, setEditingStudentId] = useState(null);
+      const [searchTermStudents, setSearchTermStudents] = useState('');
+      const [filterLevel, setFilterLevel] = useState('الكل');
+      const [paymentFilter, setPaymentFilter] = useState('الكل');
+      const [sortOrder, setSortOrder] = useState('alphabetical');
+      
+      const [selectedForPrint, setSelectedForPrint] = useState([]);
+      
+      const [searchTermAttendance, setSearchTermAttendance] = useState('');
+      const [filterLevelAttendance, setFilterLevelAttendance] = useState('الكل');
+      const [barcodeInput, setBarcodeInput] = useState('');
+      const [scanMessage, setScanMessage] = useState({ text: '', type: '' });
+      const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
+      
+      const [searchTermFiles, setSearchTermFiles] = useState('');
+      const [filterLevelFiles, setFilterLevelFiles] = useState('الكل');
+      
+      const [newStudent, setNewStudent] = useState({ name: '', phone: '', parentPhone: '', level: 'معادلة معهد', paymentMode: 'cash', totalAmount: '', paidAmount: '', subscriptionType: 'أونلاين وسنتر', notes: '' });
+      
+      const [showTransactionForm, setShowTransactionForm] = useState(false);
+      const [newTransaction, setNewTransaction] = useState({ type: 'income', amount: '', date: new Date().toISOString().split('T')[0], description: '', studentId: '' });
+      const [searchTermFinancials, setSearchTermFinancials] = useState('');
+
+      const [payingStudent, setPayingStudent] = useState(null);
+      const [installmentAmount, setInstallmentAmount] = useState('');
+      const [studentToDelete, setStudentToDelete] = useState(null);
+      const [refundAmount, setRefundAmount] = useState('0');
+      const [selectedProfile, setSelectedProfile] = useState(null); 
+      const [dateFilter, setDateFilter] = useState({ start: '', end: '' }); 
+
+      const [confirmModal, setConfirmModal] = useState({ isOpen: false, text: '', onConfirm: null });
+      const confirmAction = (text, onConfirm) => { setConfirmModal({ isOpen: true, text, onConfirm }); };
+
+      const barcodeInputRef = useRef(null);
+
+      useEffect(() => {
+        if (!db) return;
+        const unsubStudents = onSnapshot(collection(db, 'students'), (snapshot) => { setStudents(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))); });
+        const unsubAttendance = onSnapshot(collection(db, 'attendance'), (snapshot) => {
+          const attData = {}; snapshot.docs.forEach(doc => { attData[doc.id] = doc.data(); }); setAttendance(attData);
+        });
+        const unsubTransactions = onSnapshot(collection(db, 'transactions'), (snapshot) => {
+          const sorted = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => new Date(b.date) - new Date(a.date));
+          setTransactions(sorted);
+        });
+        return () => { unsubStudents(); unsubAttendance(); unsubTransactions(); };
+      }, []);
+
+      const filteredTransactionsForFinancials = useMemo(() => {
+        return transactions.filter(t => {
+          if (dateFilter.start && t.date < dateFilter.start) return false;
+          if (dateFilter.end && t.date > dateFilter.end) return false;
+          if (searchTermFinancials) {
+            const studentName = (t.studentId ? students.find(s => s.id === t.studentId)?.name : '') || '';
+            const searchLower = searchTermFinancials.toLowerCase();
+            if (!t.description.toLowerCase().includes(searchLower) && !studentName.toLowerCase().includes(searchLower)) {
+              return false;
+            }
+          }
+          return true;
+        });
+      }, [transactions, dateFilter, searchTermFinancials, students]);
+
+      const monthlySummary = useMemo(() => {
+        const summary = {};
+        const monthNames = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+        transactions.forEach(t => {
+           const rawMonth = t.date.substring(0, 7); 
+           if (!summary[rawMonth]) summary[rawMonth] = { income: 0, expense: 0, raw: rawMonth };
+           if (t.type === 'income') summary[rawMonth].income += Number(t.amount);
+           else summary[rawMonth].expense += Number(t.amount);
+        });
+        return Object.values(summary).sort((a,b) => b.raw.localeCompare(a.raw)).map(data => {
+           const [year, m] = data.raw.split('-');
+           return { name: `${monthNames[parseInt(m) - 1]} ${year}`, ...data };
+        });
+      }, [transactions]);
+
+      const exportToCSV = (filename, headers, data) => {
+        const BOM = '\uFEFF'; 
+        const csvContent = [headers.join(','), ...data.map(row => row.map(cell => `"${String(cell || '').replace(/"/g, '""')}"`).join(','))].join('\n');
+        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.setAttribute('download', `${filename}.csv`);
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+      };
+
+      const handleLocalBackup = () => {
+        const data = { students, attendance, transactions, exportDate: new Date().toISOString() };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Center4U_Backup_${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        confirmAction('تم تحميل نسخة احتياطية من جميع بيانات السنتر بنجاح على جهازك.', () => {});
+      };
+
+      const formatWhatsAppLink = (phone, text = '') => {
+        if(!phone) return '#';
+        let clean = phone.replace(/\D/g, '');
+        if(clean.startsWith('0')) clean = '2' + clean; 
+        const textParam = text ? `?text=${encodeURIComponent(text)}` : '';
+        return `https://wa.me/${clean}${textParam}`;
+      };
+
+      const handlePrintReceipt = (transaction, studentName) => {
+        const incomeTransactions = transactions.filter(t => t.type === 'income').sort((a,b) => a.createdAt - b.createdAt);
+        const receiptIndex = incomeTransactions.findIndex(t => t.id === transaction.id);
+        const receiptNo = receiptIndex !== -1 ? receiptIndex + 1001 : Math.floor(Math.random() * 9000) + 1000;
+
+        const printWindow = window.open('', '_blank');
+        
+        // حل مشكلة حاجب النوافذ المنبثقة (Pop-up Blocker)
+        if (!printWindow) {
+             confirmAction('⚠️ المتصفح قام بمنع فتح صفحة الطباعة (Pop-up Blocker). يرجى السماح بالنوافذ المنبثقة من أعلى شريط المتصفح للمتابعة.', () => {});
+             return;
+        }
+
+        printWindow.document.write(`
+          <html dir="rtl">
+          <head>
+            <title>إيصال رقم #${receiptNo}</title>
+            <style>
+              body { font-family: Tahoma, Arial, sans-serif; padding: 20px; text-align: center; color: #333; background: #fff; }
+              .receipt-box { border: 2px dashed #381163; padding: 20px; max-width: 350px; margin: 0 auto; border-radius: 10px; }
+              h2 { color: #381163; margin-bottom: 5px; }
+              .amount { font-size: 24px; font-weight: bold; color: #10b981; margin: 15px 0; border: 1px solid #eee; padding: 10px; background: #f9f9f9; }
+              .details { text-align: right; margin-top: 20px; font-size: 14px; line-height: 1.8; }
+              .footer { margin-top: 20px; font-size: 12px; color: #777; border-top: 1px solid #eee; padding-top: 10px; }
+            </style>
+          </head>
+          <body>
+            <div class="receipt-box">
+              <h2>Center For You</h2>
+              <p style="margin: 0; font-size: 12px; color: #666;">إيصال استلام نقدية | رقم #${receiptNo}</p>
+              <div class="amount">${transaction.amount} ج.م</div>
+              <div class="details">
+                <p><strong>التاريخ:</strong> ${transaction.date}</p>
+                <p><strong>استلمنا من الطالب/ة:</strong> ${studentName || '................................'}</p>
+                <p><strong>وذلك قيمة:</strong> ${transaction.description}</p>
+              </div>
+              <div class="footer">توقيع المستلم: .....................</div>
+              <div style="margin-top: 15px; text-align: right; font-size: 11px; color: #d1621f; background: #fff5f0; border: 1px solid #fed7aa; padding: 10px; border-radius: 5px; line-height: 1.6;">
+                <strong style="color: #c2410c;">شروط هامة:</strong><br>
+                - في حالة الانسحاب يتم خصم مصاريف الكورسات التي تم حضورها.<br>
+                - لا يمكن الانسحاب أو سحب الملف بعد تسجيل الاستمارات.
+              </div>
+            </div>
+            <script>
+              window.onload = function() {
+                setTimeout(() => { window.print(); window.close(); }, 500);
+              };
+            <\/script>
+          </body>
+          </html>
+        `);
+        // حل مشكلة التعليق الدائم لشاشة التحميل
+        printWindow.document.close();
+      };
+
+      const handlePrintIDCards = (studentsToPrint) => {
+        if (!studentsToPrint || studentsToPrint.length === 0) {
+          confirmAction('عفواً، لا يوجد طلاب محددين لطباعة كارنيهاتهم!', () => {});
+          return;
+        }
+
+        const chunks = [];
+        const currentYear = new Date().getFullYear();
+        const academicYear = `${currentYear} / ${currentYear + 1}`;
+        for (let i = 0; i < studentsToPrint.length; i += 10) {
+          let chunk = studentsToPrint.slice(i, i + 10);
+          while (chunk.length < 10) chunk.push(null);
+          chunks.push(chunk);
+        }
+
+        let cardsHtml = '';
+
+        chunks.forEach(chunk => {
+          cardsHtml += `<div class="page">`;
+          chunk.forEach(student => {
+            if (student) {
+              const barcodeVal = student.barcode || student.phone;
+              cardsHtml += `
+                <div class="card front">
+                  <div class="header">
+                    <h2>Center For You</h2>
+                    <span>${academicYear}</span>
+                  </div>
+                  <div class="content">
+                    <h3 class="student-name">${student.name}</h3>
+                    <div class="info-grid">
+                      <div><span class="label">المرحلة:</span> <span class="value">${student.level}</span></div>
+                      <div><span class="label">الاشتراك:</span> <span class="value">كامل</span></div>
+                    </div>
+                    <div class="barcode-container">
+                       <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${barcodeVal}" alt="QR Code" />
+                       <div class="barcode-text">${barcodeVal}</div>
+                    </div>
+                  </div>
+                  <div class="footer">
+                    قنا - مدينة العمال - امام قصر الثقافة
+                  </div>
+                </div>
+              `;
+            } else {
+              cardsHtml += `<div class="card empty"></div>`;
+            }
+          });
+          cardsHtml += `</div>`;
+
+          cardsHtml += `<div class="page">`;
+          const backOrder = [1, 0, 3, 2, 5, 4, 7, 6, 9, 8];
+          backOrder.forEach(idx => {
+            const student = chunk[idx];
+            if (student) {
+              cardsHtml += `
+                <div class="card back">
+                  <div class="watermark">Center 4U</div>
+                  <div class="back-header">تعليمات هامة</div>
+                  <ul class="instructions">
+                    <li>هذا الكارنيه شخصي ولا يجوز استخدامه لغير حامله.</li>
+                    <li>برجاء إبراز الكارنيه دائماً عند الدخول.</li>
+                    <li>في حالة الفقدان، يتم دفع غرامة لاستخراج بدل فاقد.</li>
+                  </ul>
+                  <div class="back-footer">
+                    الإدارة: فرع قنا | للتواصل: 01020057744
+                  </div>
+                </div>
+              `;
+            } else {
+              cardsHtml += `<div class="card empty"></div>`;
+            }
+          });
+          cardsHtml += `</div>`;
+        });
+
+        const printWindow = window.open('', '_blank');
+        
+        // التحقق من تفعيل النوافذ المنبثقة
+        if (!printWindow) {
+             confirmAction('⚠️ المتصفح قام بمنع فتح صفحة الطباعة (Pop-up Blocker). يرجى السماح بالنوافذ المنبثقة من أعلى شريط المتصفح للمتابعة.', () => {});
+             return;
+        }
+
+        printWindow.document.write(`
+          <html dir="rtl">
+          <head>
+            <title>طباعة الكارنيهات A4 - QR Codes</title>
+            <style>
+              @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;900&display=swap');
+              @page { size: A4 portrait; margin: 0; }
+              body { 
+                font-family: 'Tajawal', sans-serif; 
+                margin: 0; 
+                padding: 0; 
+                background: #e2e8f0; 
+              }
+              .page {
+                width: 210mm;
+                height: 297mm;
+                background: white;
+                margin: 0 auto;
+                box-sizing: border-box;
+                padding: 6mm 15mm; 
+                display: grid;
+                grid-template-columns: 8.5cm 8.5cm;
+                grid-template-rows: repeat(5, 5.4cm); 
+                gap: 4mm 10mm; 
+                justify-content: center;
+                align-content: center;
+                page-break-after: always;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+              }
+              
+              .card {
+                width: 8.5cm;
+                height: 5.4cm;
+                border: 1px dashed #94a3b8; 
+                border-radius: 8px; 
+                box-sizing: border-box;
+                position: relative;
+                overflow: hidden;
+                background: #fff;
+                display: flex;
+                flex-direction: column;
+              }
+              .empty { border: none; background: transparent; }
+              
+              .front .header { background: #381163; color: white; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; border-bottom: 2px solid #d1621f;}
+              .front .header h2 { margin: 0; font-size: 16px; font-weight: 900; }
+              .front .content { padding: 6px 12px; flex: 1; text-align: center; }
+              .student-name { color: #d1621f; margin: 4px 0 6px 0; font-size: 18px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+              .info-grid { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 12px; font-weight: bold; background: #f3f4f6; padding: 4px 6px; border-radius: 6px; border: 1px solid #e2e8f0;}
+              .label { color: #666; }
+              .value { color: #381163; }
+              
+              .barcode-container { margin-top: 4px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+              .barcode-container img { height: 50px; width: 50px; display: block; margin: 0 auto; object-fit: contain; }
+              .barcode-text { font-family: monospace; font-size: 11px; font-weight: bold; letter-spacing: 2px; color: #333; margin-top: 2px; }
+              
+              .front .footer { background: #fee2e2; color: #b91c1c; font-size: 11px; font-weight: bold; text-align: center; padding: 5px; border-top: 1px solid #fca5a5; position: absolute; bottom: 0; width: 100%; box-sizing: border-box;}
+
+              .back { background: #f8f9fc; }
+              .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 45px; font-weight: 900; color: rgba(56,17,99,0.05); white-space: nowrap; pointer-events: none; z-index: 0;}
+              .back-header { background: #d1621f; color: white; text-align: center; padding: 6px; font-size: 14px; font-weight: bold; position: relative; z-index: 1; border-bottom: 2px solid #381163;}
+              .instructions { font-size: 12px; color: #333; padding-right: 22px; line-height: 1.8; margin-top: 15px; font-weight: 700; position: relative; z-index: 1;}
+              .instructions li { margin-bottom: 5px; }
+              .back-footer { position: absolute; bottom: 0; width: 100%; background: #381163; color: white; text-align: center; font-size: 12px; padding: 6px 0; font-weight: bold; z-index: 1; border-top: 2px solid #d1621f;}
+
+              @media print {
+                body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: transparent; }
+                .page { margin: 0; box-shadow: none; }
+              }
+            </style>
+          </head>
+          <body>
+            ${cardsHtml}
+            <script>
+              window.onload = function() {
+                setTimeout(() => { window.print(); window.close(); }, 1500);
+              };
+            <\/script>
+          </body>
+          </html>
+        `);
+        // إغلاق المجرى وإخبار المتصفح بأن المحتوى اكتمل لتشغيل الطباعة
+        printWindow.document.close();
+      };
+
+      const handleAddStudent = async (e) => {
+        e.preventDefault();
+        if (!newStudent.name) return;
+        
+        if (editingStudentId) {
+          await updateDoc(doc(db, 'students', editingStudentId), { ...newStudent, updatedAt: Date.now() });
+          setEditingStudentId(null);
+        } else {
+          const id = Date.now().toString();
+          const registrationDate = new Date().toISOString().split('T')[0];
+          const barcode = Math.floor(1000000 + Math.random() * 9000000).toString(); 
+          
+          await setDoc(doc(db, 'students', id), { ...newStudent, createdAt: Date.now(), registrationDate, barcode });
+          
+          if (Number(newStudent.paidAmount) > 0) {
+            const transId = id + "_auto";
+            const transObj = {
+              type: 'income', amount: Number(newStudent.paidAmount), date: registrationDate, description: `دفعة اشتراك مبدئية - ${newStudent.name}`
+            };
+            await setDoc(doc(db, 'transactions', transId), { ...transObj, studentId: id, createdAt: Date.now() });
+            transObj.id = transId; 
+
+            confirmAction('تم حفظ الطالب بنجاح! هل تريد طباعة إيصال بالمبلغ المدفوع؟', () => {
+                handlePrintReceipt(transObj, newStudent.name);
+            });
+          }
+        }
+        setNewStudent({ name: '', phone: '', parentPhone: '', level: 'معادلة معهد', paymentMode: 'cash', totalAmount: '', paidAmount: '', subscriptionType: 'أونلاين وسنتر', notes: '' });
+        setShowStudentForm(false);
+      };
+
+      const handleConfirmDelete = async (e) => {
+        e.preventDefault();
+        if (!studentToDelete) return;
+        const refundNum = Number(refundAmount) || 0;
+        if (refundNum > 0) {
+          await setDoc(doc(db, 'transactions', Date.now().toString() + "_withdrawal"), {
+            type: 'expense', amount: refundNum, date: new Date().toISOString().split('T')[0],
+            description: `مبلغ مسترد (انسحاب الطالب ${studentToDelete.name})`, createdAt: Date.now()
+          });
+        }
+        await deleteDoc(doc(db, 'students', studentToDelete.id));
+        setStudentToDelete(null); setRefundAmount('0');
+      };
+
+      const handlePayInstallmentSubmit = async (e) => {
+        e.preventDefault();
+        if (!payingStudent || !installmentAmount) return;
+        const amountNum = Number(installmentAmount);
+        if (amountNum <= 0) return;
+        
+        const newTotalPaid = Number(payingStudent.paidAmount || 0) + amountNum;
+        await updateDoc(doc(db, 'students', payingStudent.id), { paidAmount: newTotalPaid, updatedAt: Date.now() });
+        
+        const transId = Date.now().toString() + "_inst";
+        const transObj = { type: 'income', amount: amountNum, date: new Date().toISOString().split('T')[0], description: `دفع قسط/جزء - ${payingStudent.name}` };
+        await setDoc(doc(db, 'transactions', transId), { ...transObj, studentId: payingStudent.id, createdAt: Date.now() });
+        transObj.id = transId; 
+
+        confirmAction('تمت إضافة الدفعة بنجاح! هل تريد طباعة إيصال؟', () => {
+            handlePrintReceipt(transObj, payingStudent.name);
+        });
+        
+        setPayingStudent(null); setInstallmentAmount('');
+      };
+
+      const handleEditClick = (student) => { 
+        const safeStudent = { ...student };
+        delete safeStudent.id; delete safeStudent.createdAt; delete safeStudent.registrationDate; delete safeStudent.updatedAt; delete safeStudent.barcode;
+        setNewStudent(safeStudent); 
+        setEditingStudentId(student.id); 
+        setShowStudentForm(true); 
+      };
+
+      const handleAttendanceChange = async (studentId, status) => { 
+        const updatedDay = { ...(attendance[attendanceDate] || {}), [studentId]: status }; 
+        await setDoc(doc(db, 'attendance', attendanceDate), updatedDay); 
+      };
+
+      const handleBarcodeScan = async (e) => {
+        e.preventDefault();
+        const code = barcodeInput.trim();
+        if (!code) return;
+
+        const student = students.find(s => s.barcode === code || s.phone === code);
+        if (student) {
+           const isAlreadyPresent = attendance[attendanceDate] && attendance[attendanceDate][student.id] === 'present';
+           
+           if (isAlreadyPresent) {
+               setScanMessage({ text: `⚠️ عذراً، الطالب (${student.name}) مسجل حضور بالفعل! لا يمكن تسجيله مرة أخرى.`, type: 'error' });
+           } else {
+               const updatedDay = { ...(attendance[attendanceDate] || {}), [student.id]: 'present' };
+               await setDoc(doc(db, 'attendance', attendanceDate), updatedDay);
+               setScanMessage({ text: `✔ تم تسجيل حضور: ${student.name}`, type: 'success' });
+           }
+        } else {
+           setScanMessage({ text: '❌ الـ QR خاطئ أو الطالب غير مسجل!', type: 'error' });
+        }
+        setBarcodeInput('');
+        if (barcodeInputRef.current) barcodeInputRef.current.focus();
+        
+        setTimeout(() => setScanMessage({ text: '', type: '' }), 4000); 
+      };
+
+      const markAllAttendance = (status) => {
+        const msg = status === 'present' ? 'هل أنت متأكد من تسجيل جميع الطلاب الظاهرين في الفلتر الحالي كـ "حاضر"؟' : 'هل أنت متأكد من مسح حضور جميع الطلاب الظاهرين؟';
+        confirmAction(msg, async () => {
+          const currentAtt = attendance[attendanceDate] || {};
+          const updatedDay = { ...currentAtt };
+          const filteredForAttendance = students.filter(s => s.name.toLowerCase().includes(searchTermAttendance.toLowerCase())).filter(s => filterLevelAttendance === 'الكل' || s.level === filterLevelAttendance);
+          filteredForAttendance.forEach(s => { updatedDay[s.id] = status; });
+          await setDoc(doc(db, 'attendance', attendanceDate), updatedDay);
+        });
+      };
+
+      const handleToggleFile = async (student) => {
+        if (student.fileReceived) {
+          confirmAction(`هل أنت متأكد من إلغاء استلام ملف "${student.name}"؟ سيتم مسح رقم الملف #${student.fileNumber}.`, async () => {
+            await updateDoc(doc(db, 'students', student.id), { fileReceived: false, fileNumber: null });
+          });
+        } else {
+          const existingNumbers = students.filter(s => s.fileReceived && s.fileNumber).map(s => Number(s.fileNumber));
+          let nextNumber = 1;
+          if (existingNumbers.length > 0) nextNumber = Math.max(...existingNumbers) + 1;
+          await updateDoc(doc(db, 'students', student.id), { fileReceived: true, fileNumber: nextNumber });
+        }
+      };
+
+      const handleAddTransaction = async (e) => {
+        e.preventDefault();
+        if (!newTransaction.amount || !newTransaction.description) return;
+        await setDoc(doc(db, 'transactions', Date.now().toString()), { ...newTransaction, amount: Number(newTransaction.amount), createdAt: Date.now() });
+        setNewTransaction({ type: 'income', amount: '', date: new Date().toISOString().split('T')[0], description: '', studentId: '' });
+        setShowTransactionForm(false);
+      };
+      
+      const handleDeleteTransaction = (id) => { 
+        confirmAction('هل أنت متأكد من مسح هذه العملية المالية بشكل نهائي؟', async () => {
+          await deleteDoc(doc(db, 'transactions', id));
+        });
+      };
+
+      const renderDashboard = () => {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const todayAtt = attendance[todayStr] || {};
+        const presentToday = students.filter(s => todayAtt[s.id] === 'present').length;
+        const debtCount = students.filter(s => (Number(s.totalAmount)||0) > (Number(s.paidAmount)||0)).length;
+
+        const todayIncome = transactions.filter(t => t.type === 'income' && t.date === todayStr).reduce((acc, curr) => acc + Number(curr.amount), 0);
+        const instituteCount = students.filter(s => s.level === 'معادلة معهد').length;
+        const diplomaCount = students.filter(s => s.level === 'معادلة دبلوم').length;
+
+        return (
+          <div className="space-y-6 sm:space-y-8 animate-fade-up relative z-10">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between bg-white/60 dark:bg-slate-800/60 backdrop-blur-md p-6 sm:p-8 rounded-3xl sm:rounded-[2.5rem] shadow-sm border border-white/80 dark:border-white/10">
+              <div>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#381163] dark:text-white tracking-tight mb-2 flex items-center gap-3">نظرة عامة <Sparkles className="text-[#d1621f]" size={28} /></h2>
+                <p className="text-gray-500 dark:text-gray-400 font-medium text-base sm:text-lg">ملخص شامل لأداء السنتر المالي والإداري.</p>
+              </div>
+              <div className="hidden md:flex px-6 py-3 bg-white dark:bg-slate-700 rounded-3xl shadow-lg border border-gray-100 dark:border-slate-600 transform rotate-3 hover:rotate-0 transition-all duration-300">
+                 <img src={LOGO_URL} alt="Logo" className="h-16 w-auto object-contain" />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              <div className="glass-card p-5 sm:p-8 rounded-3xl sm:rounded-[2.5rem] relative overflow-hidden group hover:-translate-y-2 transition-all duration-300 shadow-xl shadow-blue-500/5">
+                <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full opacity-10 group-hover:scale-150 transition-transform duration-500"></div>
+                <div className="flex justify-between items-center mb-4">
+                  <p className="text-base sm:text-lg font-bold text-gray-500 dark:text-gray-400">إجمالي الطلاب</p>
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-inner"><Users size={24} className="sm:w-7 sm:h-7" /></div>
+                </div>
+                <h3 className="text-4xl sm:text-5xl font-black text-gray-800 dark:text-white mb-6">{students.length}</h3>
+                <div className="flex gap-4 border-t border-gray-100 dark:border-slate-700 pt-4">
+                  <div className="flex-1">
+                    <p className="text-xl sm:text-2xl font-black text-[#381163] dark:text-indigo-300">{instituteCount}</p>
+                    <p className="text-xs sm:text-sm font-bold text-gray-400">معادلة معهد</p>
+                  </div>
+                  <div className="w-px bg-gray-200 dark:bg-slate-700"></div>
+                  <div className="flex-1">
+                    <p className="text-xl sm:text-2xl font-black text-[#d1621f] dark:text-orange-400">{diplomaCount}</p>
+                    <p className="text-xs sm:text-sm font-bold text-gray-400">معادلة دبلوم</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="glass-card p-5 sm:p-8 rounded-3xl sm:rounded-[2.5rem] relative overflow-hidden group hover:-translate-y-2 transition-all duration-300 shadow-xl shadow-emerald-500/5">
+                <div className="absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full opacity-10 group-hover:scale-150 transition-transform duration-500"></div>
+                <div className="flex justify-between items-center mb-6"><div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-inner"><TrendingUp size={24} className="sm:w-7 sm:h-7" /></div></div>
+                <h3 className="text-3xl sm:text-4xl font-black text-gray-800 dark:text-white mb-1">{todayIncome} <span className="text-lg sm:text-xl text-gray-400">ج.م</span></h3><p className="text-base sm:text-lg font-bold text-gray-500 dark:text-gray-400">إيرادات اليوم فقط</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-4 sm:mt-6">
+              <div className="glass-card p-5 sm:p-8 rounded-3xl sm:rounded-[2.5rem] relative overflow-hidden group hover:-translate-y-2 transition-all duration-300 shadow-xl shadow-indigo-500/5">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-xl sm:text-2xl font-black text-gray-800 dark:text-white mb-1">الحضور اليوم</h3>
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-inner"><CalendarCheck size={24} className="sm:w-7 sm:h-7" /></div>
+                </div>
+                <div className="flex items-end gap-2">
+                  <span className="text-4xl sm:text-5xl font-black text-indigo-600 dark:text-indigo-400">{presentToday}</span>
+                  <span className="text-base sm:text-lg font-bold text-gray-500 dark:text-gray-400 mb-1">/ {students.length} طالب</span>
+                </div>
+              </div>
+
+              <div className="glass-card p-5 sm:p-8 rounded-3xl sm:rounded-[2.5rem] relative overflow-hidden group hover:-translate-y-2 transition-all duration-300 shadow-xl shadow-[#ff7b72]/5 border-r-4 border-[#ff7b72]">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-xl sm:text-2xl font-black text-gray-800 dark:text-white mb-1">طلاب لم يسددوا (متبقي)</h3>
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-rose-50 dark:bg-rose-500/20 text-[#ff7b72] dark:text-rose-400 flex items-center justify-center shadow-inner"><AlertCircle size={24} className="sm:w-7 sm:h-7" /></div>
+                </div>
+                <div className="flex items-end gap-2">
+                  <span className="text-4xl sm:text-5xl font-black text-[#ff7b72] dark:text-rose-400">{debtCount}</span>
+                  <span className="text-base sm:text-lg font-bold text-gray-500 dark:text-gray-400 mb-1">طالب مسجل</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      const renderStudents = () => {
+        const filteredStudents = students
+          .filter(s => s.name.toLowerCase().includes(searchTermStudents.toLowerCase()))
+          .filter(s => filterLevel === 'الكل' || s.level === filterLevel)
+          .filter(s => {
+             if (paymentFilter === 'الكل') return true;
+             const total = Number(s.totalAmount) || 0;
+             const paid = Number(s.paidAmount) || 0;
+             if (paymentFilter === 'خالص') return total > 0 && paid >= total;
+             if (paymentFilter === 'متبقي') return total > 0 && paid < total;
+             return true;
+          }).sort((a, b) => {
+             if (sortOrder === 'alphabetical') return a.name.localeCompare(b.name, 'ar');
+             if (sortOrder === 'newest') return (b.createdAt || 0) - (a.createdAt || 0);
+             if (sortOrder === 'oldest') return (a.createdAt || 0) - (b.createdAt || 0);
+             return 0;
+          });
+
+        const filteredStudentIds = filteredStudents.map(s => s.id);
+        const isAllSelected = filteredStudents.length > 0 && filteredStudentIds.every(id => selectedForPrint.includes(id));
+
+        const handleToggleSelect = (id) => {
+            setSelectedForPrint(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+        };
+
+        const handleSelectAll = (e) => {
+            if (e.target.checked) {
+                const newSelected = [...new Set([...selectedForPrint, ...filteredStudentIds])];
+                setSelectedForPrint(newSelected);
+            } else {
+                setSelectedForPrint(prev => prev.filter(id => !filteredStudentIds.includes(id)));
+            }
+        };
+
+        const handleExecutePrint = () => {
+            if (selectedForPrint.length > 0) {
+                const toPrint = students.filter(s => selectedForPrint.includes(s.id));
+                handlePrintIDCards(toPrint);
+            } else {
+                handlePrintIDCards(filteredStudents);
+            }
+        };
+
+        return (
+          <div className="space-y-6 animate-fade-up relative z-10">
+            <div className="glass-card p-5 sm:p-6 rounded-3xl sm:rounded-[2.5rem] flex flex-col xl:flex-row justify-between items-center gap-4 sm:gap-6">
+              <h2 className="text-2xl sm:text-3xl font-black text-[#381163] dark:text-white flex items-center gap-3 w-full xl:w-auto"><div className="p-2 sm:p-3 bg-[#381163]/10 dark:bg-white/10 rounded-xl sm:rounded-2xl"><Users size={24} className="text-[#381163] dark:text-indigo-300 sm:w-7 sm:h-7"/></div> سجل الطلاب</h2>
+              <div className="flex flex-col sm:flex-row flex-wrap items-center justify-end gap-3 w-full xl:w-auto">
+                <div className="relative w-full sm:w-auto sm:min-w-[180px] flex-1">
+                  <Search size={20} className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input type="text" placeholder="بحث..." value={searchTermStudents} onChange={(e) => setSearchTermStudents(e.target.value)} className="w-full pl-4 sm:pl-5 pr-12 sm:pr-14 py-3 sm:py-4 bg-white/50 dark:bg-slate-800/50 border border-white dark:border-slate-700 rounded-2xl sm:rounded-full focus:outline-none focus:ring-2 focus:ring-[#381163]/30 dark:focus:ring-indigo-500 font-bold shadow-sm dark:text-white" />
+                </div>
+                <div className="relative w-full sm:w-auto flex-1">
+                  <Filter size={20} className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <select value={filterLevel} onChange={(e) => setFilterLevel(e.target.value)} className="w-full pl-8 sm:pl-8 pr-12 sm:pr-12 py-3 sm:py-4 bg-white/50 dark:bg-slate-800/50 border border-white dark:border-slate-700 rounded-2xl sm:rounded-full focus:outline-none focus:ring-2 focus:ring-[#381163]/30 font-bold shadow-sm appearance-none cursor-pointer dark:text-white">
+                    <option value="الكل">المراحل</option><option value="معادلة معهد">معادلة معهد</option><option value="معادلة دبلوم">معادلة دبلوم</option>
+                  </select>
+                </div>
+                <div className="relative w-full sm:w-auto flex-1">
+                  <Wallet size={20} className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <select value={paymentFilter} onChange={(e) => setPaymentFilter(e.target.value)} className="w-full pl-8 pr-12 py-3 sm:py-4 bg-white/50 dark:bg-slate-800/50 border border-white dark:border-slate-700 rounded-2xl sm:rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-500/30 font-bold shadow-sm appearance-none cursor-pointer dark:text-white">
+                    <option value="الكل">حالة الدفع</option><option value="خالص">دفع خالص</option><option value="متبقي">عليه متبقي</option>
+                  </select>
+                </div>
+                <div className="relative w-full sm:w-auto flex-1">
+                  <ArrowUpDown size={20} className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} className="w-full pl-8 pr-12 py-3 sm:py-4 bg-white/50 dark:bg-slate-800/50 border border-white dark:border-slate-700 rounded-2xl sm:rounded-full focus:outline-none focus:ring-2 focus:ring-[#381163]/30 font-bold shadow-sm appearance-none cursor-pointer dark:text-white">
+                    <option value="alphabetical">أبجدي (أ-ي)</option>
+                    <option value="newest">الأحدث إضافة</option>
+                    <option value="oldest">الأقدم إضافة</option>
+                  </select>
+                </div>
+                
+                <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto">
+                  <button onClick={handleExecutePrint} className="flex-1 sm:flex-none justify-center bg-indigo-50 dark:bg-indigo-500/20 text-[#381163] dark:text-indigo-300 hover:bg-indigo-500 hover:text-white px-4 sm:px-6 py-3 sm:py-4 rounded-2xl sm:rounded-full flex items-center gap-2 font-bold transition-all shadow-sm border border-indigo-100 dark:border-slate-700 text-sm sm:text-base whitespace-nowrap">
+                    <QrCode size={20} className="sm:w-[22px] sm:h-[22px]" /> <span className="">{selectedForPrint.length > 0 ? `طباعة (${selectedForPrint.length})` : 'طباعة كارنيهات'}</span>
+                  </button>
+                  
+                  <button onClick={() => {
+                      const headers = ['الاسم', 'الطالب', 'ولي الأمر', 'الباركود', 'المرحلة', 'نوع الاشتراك', 'إجمالي الاشتراك', 'المدفوع', 'المتبقي', 'ملاحظات'];
+                      const data = filteredStudents.map(s => [s.name, s.phone, s.parentPhone||'-', s.barcode||'-', s.level, s.subscriptionType, s.totalAmount||'0', s.paidAmount || '0', (Number(s.totalAmount||0) - Number(s.paidAmount||0)), s.notes||'-']);
+                      exportToCSV('سجل_الطلاب', headers, data);
+                    }} className="flex-1 sm:flex-none justify-center bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-slate-700 hover:bg-emerald-50 dark:hover:bg-slate-700 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl sm:rounded-full flex items-center gap-2 font-bold transition-all shadow-sm"><FileSpreadsheet size={20} className="sm:w-[22px] sm:h-[22px]" /> <span className="hidden sm:inline">إكسيل</span></button>
+                  <button onClick={() => { setEditingStudentId(null); setShowStudentForm(!showStudentForm); }} className="w-full sm:w-auto justify-center bg-gradient-to-r from-[#381163] to-[#511a8f] dark:from-indigo-600 dark:to-purple-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-2xl sm:rounded-full flex items-center gap-2 font-bold hover:shadow-lg hover:-translate-y-1 transition-all"><Plus size={20} className="sm:w-[22px] sm:h-[22px]" /> طالب جديد</button>
+                </div>
+              </div>
+            </div>
+
+            {showStudentForm && (
+              <div className="glass-card p-5 sm:p-8 rounded-3xl sm:rounded-[2.5rem] border-t-4 border-[#381163] dark:border-indigo-500 animate-fade-up">
+                <h3 className="text-xl sm:text-2xl font-black text-gray-800 dark:text-white mb-6 sm:mb-8">{editingStudentId ? 'تعديل بيانات الطالب' : 'تسجيل طالب جديد'}</h3>
+                <form onSubmit={handleAddStudent} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                  <div className="space-y-2"><label className="text-gray-600 dark:text-gray-300 font-bold ml-2 text-sm sm:text-base">اسم الطالب</label><input required type="text" className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-white/80 dark:bg-slate-900/60 border-0 dark:border dark:border-slate-700 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-[#381163]/30 dark:focus:ring-indigo-500 shadow-inner font-bold dark:text-white" value={newStudent.name} onChange={e => setNewStudent({...newStudent, name: e.target.value})} /></div>
+                  <div className="space-y-2"><label className="text-gray-600 dark:text-gray-300 font-bold ml-2 text-sm sm:text-base">رقم الطالب</label><input required type="tel" className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-white/80 dark:bg-slate-900/60 border-0 dark:border dark:border-slate-700 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-[#381163]/30 dark:focus:ring-indigo-500 shadow-inner font-bold dark:text-white" dir="ltr" value={newStudent.phone} onChange={e => setNewStudent({...newStudent, phone: e.target.value})} /></div>
+                  <div className="space-y-2"><label className="text-gray-600 dark:text-gray-300 font-bold ml-2 text-sm sm:text-base">رقم ولي الأمر</label><input required type="tel" className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-white/80 dark:bg-slate-900/60 border-0 dark:border dark:border-slate-700 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-[#381163]/30 dark:focus:ring-indigo-500 shadow-inner font-bold dark:text-white" dir="ltr" value={newStudent.parentPhone || ''} onChange={e => setNewStudent({...newStudent, parentPhone: e.target.value})} /></div>
+                  <div className="space-y-2"><label className="text-gray-600 dark:text-gray-300 font-bold ml-2 text-sm sm:text-base">المرحلة</label><select className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-white/80 dark:bg-slate-900/60 border-0 dark:border dark:border-slate-700 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-[#381163]/30 dark:focus:ring-indigo-500 shadow-inner font-bold dark:text-white" value={newStudent.level} onChange={e => setNewStudent({...newStudent, level: e.target.value})}><option value="معادلة معهد">معادلة معهد</option><option value="معادلة دبلوم">معادلة دبلوم</option></select></div>
+                  <div className="space-y-2"><label className="text-gray-600 dark:text-gray-300 font-bold ml-2 text-sm sm:text-base">الاشتراك</label><select className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-white/80 dark:bg-slate-900/60 border-0 dark:border dark:border-slate-700 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-[#381163]/30 dark:focus:ring-indigo-500 shadow-inner font-bold dark:text-white" value={newStudent.subscriptionType} onChange={e => setNewStudent({...newStudent, subscriptionType: e.target.value})}><option value="أونلاين فقط">أونلاين فقط</option><option value="أونلاين وسنتر">أونلاين وسنتر</option><option value="أونلاين وسفر">أونلاين وسفر</option><option value="أونلاين وسنتر وسفر">أونلاين وسنتر وسفر</option></select></div>
+                  <div className="space-y-2"><label className="text-gray-600 dark:text-gray-300 font-bold ml-2 text-sm sm:text-base">قيمة الاشتراك كاملة</label><input type="number" placeholder="مثال: 4000" className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-white/80 dark:bg-slate-900/60 border-0 dark:border dark:border-slate-700 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-[#381163]/30 dark:focus:ring-indigo-500 shadow-inner font-bold dark:text-white" value={newStudent.totalAmount} onChange={e => setNewStudent({...newStudent, totalAmount: e.target.value})} /></div>
+                  <div className="space-y-2"><label className="text-gray-600 dark:text-gray-300 font-bold ml-2 text-sm sm:text-base">المبلغ المدفوع (الآن)</label><input type="number" className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-white/80 dark:bg-slate-900/60 border-0 dark:border dark:border-slate-700 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-[#d1621f]/50 shadow-inner font-bold text-[#d1621f] dark:text-orange-400" value={newStudent.paidAmount} onChange={e => setNewStudent({...newStudent, paidAmount: e.target.value})} /></div>
+                  <div className="space-y-2"><label className="text-gray-600 dark:text-gray-300 font-bold ml-2 text-sm sm:text-base">ملاحظات (اختياري)</label><input type="text" className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-white/80 dark:bg-slate-900/60 border-0 dark:border dark:border-slate-700 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-[#381163]/30 dark:focus:ring-indigo-500 shadow-inner font-bold dark:text-white" value={newStudent.notes || ''} onChange={e => setNewStudent({...newStudent, notes: e.target.value})} /></div>
+
+                  <div className="xl:col-span-4 flex justify-end mt-2 sm:mt-4"><button type="submit" className="w-full sm:w-auto justify-center bg-[#381163] dark:bg-indigo-600 text-white px-8 sm:px-10 py-3 sm:py-4 rounded-xl sm:rounded-full font-black text-base sm:text-lg shadow-lg hover:-translate-y-1 transition-all">{editingStudentId ? 'حفظ التعديلات' : 'تسجيل الطالب'}</button></div>
+                </form>
+              </div>
+            )}
+
+            <div className="glass-card rounded-3xl sm:rounded-[2.5rem] overflow-hidden shadow-sm">
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full text-right min-w-[1100px]">
+                  <thead className="bg-[#381163]/5 dark:bg-slate-800 border-b border-[#381163]/10 dark:border-slate-700">
+                    <tr>
+                      <th className="px-4 py-4 sm:py-6 text-center w-12">
+                        <input type="checkbox" checked={isAllSelected} onChange={handleSelectAll} className="w-5 h-5 cursor-pointer accent-[#381163] dark:accent-indigo-500" title="تحديد الكل" />
+                      </th>
+                      <th className="px-4 sm:px-6 py-4 sm:py-6 font-black text-[#381163] dark:text-indigo-300">الاسم (البروفايل)</th>
+                      <th className="px-4 sm:px-6 py-4 sm:py-6 font-black text-[#381163] dark:text-indigo-300">التواصل</th>
+                      <th className="px-4 sm:px-6 py-4 sm:py-6 font-black text-[#381163] dark:text-indigo-300">المرحلة</th>
+                      <th className="px-4 sm:px-6 py-4 sm:py-6 font-black text-[#381163] dark:text-indigo-300">الإجمالي</th>
+                      <th className="px-4 sm:px-6 py-4 sm:py-6 font-black text-[#381163] dark:text-indigo-300">المدفوع</th>
+                      <th className="px-4 sm:px-6 py-4 sm:py-6 font-black text-[#381163] dark:text-indigo-300">الباقي</th>
+                      <th className="px-4 sm:px-6 py-4 sm:py-6 font-black text-[#381163] dark:text-indigo-300 text-center">إجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100/50 dark:divide-slate-700/50">
+                    {filteredStudents.map(student => {
+                      const total = Number(student.totalAmount) || 0;
+                      const paid = Number(student.paidAmount) || 0;
+                      const debt = total > 0 ? total - paid : 0;
+
+                      return (
+                      <tr key={student.id} className="hover:bg-white/60 dark:hover:bg-slate-800/40 transition-colors">
+                        <td className="px-4 py-3 sm:py-4 text-center">
+                          <input type="checkbox" checked={selectedForPrint.includes(student.id)} onChange={() => handleToggleSelect(student.id)} className="w-5 h-5 cursor-pointer accent-[#381163] dark:accent-indigo-500" />
+                        </td>
+                        <td className="px-4 sm:px-6 py-3 sm:py-4">
+                          <button onClick={() => setSelectedProfile(student)} className="font-bold text-[#381163] dark:text-indigo-400 hover:text-[#d1621f] dark:hover:text-orange-400 transition-colors flex items-center gap-2 hover:underline text-sm sm:text-base">
+                            {student.name}
+                          </button>
+                          {student.notes && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 truncate max-w-[150px]" title={student.notes}>{student.notes}</p>}
+                        </td>
+                        <td className="px-4 sm:px-6 py-3 sm:py-4" dir="ltr">
+                          <div className="flex items-center justify-end gap-2 text-sm font-bold text-gray-700 dark:text-gray-300">
+                             {student.phone}
+                             <a href={formatWhatsAppLink(student.phone)} target="_blank" title="مراسلة الطالب" className="text-emerald-500 hover:text-emerald-600 bg-emerald-50 dark:bg-emerald-500/20 p-1.5 rounded-lg"><MessageCircle size={16}/></a>
+                          </div>
+                          {student.parentPhone && (
+                            <div className="flex items-center justify-end gap-2 text-xs text-gray-400 dark:text-gray-500 mt-1">
+                               و.أ: {student.parentPhone}
+                               <a href={formatWhatsAppLink(student.parentPhone)} target="_blank" title="مراسلة ولي الأمر" className="text-emerald-500 hover:text-emerald-600 bg-emerald-50 dark:bg-emerald-500/20 p-1 rounded-lg"><MessageCircle size={14}/></a>
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-bold text-[#381163] dark:text-indigo-300">{student.level}</td>
+                        <td className="px-4 sm:px-6 py-3 sm:py-4 font-bold text-gray-600 dark:text-gray-400 text-sm sm:text-base">{total > 0 ? total : '-'}</td>
+                        <td className="px-4 sm:px-6 py-3 sm:py-4 font-black text-emerald-600 dark:text-emerald-400 text-sm sm:text-base">{paid || '-'}</td>
+                        <td className="px-4 sm:px-6 py-3 sm:py-4 font-black text-red-500 dark:text-red-400 text-sm sm:text-base">{debt > 0 ? debt : '-'}</td>
+                        <td className="px-4 sm:px-6 py-3 sm:py-4 text-center whitespace-nowrap">
+                          <button onClick={() => { setPayingStudent(student); setInstallmentAmount(''); }} className="mx-0.5 sm:mx-1 p-2 bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white rounded-lg sm:rounded-xl transition-colors inline-flex" title="دفع قسط"><DollarSign size={16} className="sm:w-[18px] sm:h-[18px]" /></button>
+                          <button onClick={() => handleEditClick(student)} className="mx-0.5 sm:mx-1 p-2 bg-blue-50 dark:bg-blue-500/20 text-blue-500 dark:text-blue-400 hover:bg-blue-500 hover:text-white rounded-lg sm:rounded-xl transition-colors inline-flex" title="تعديل"><Edit size={16} className="sm:w-[18px] sm:h-[18px]" /></button>
+                          <button onClick={() => { setStudentToDelete(student); setRefundAmount('0'); }} className="mx-0.5 sm:mx-1 p-2 bg-red-50 dark:bg-red-500/20 text-red-500 dark:text-red-400 hover:bg-red-500 hover:text-white rounded-lg sm:rounded-xl transition-colors inline-flex" title="حذف/انسحاب"><Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" /></button>
+                        </td>
+                      </tr>
+                    )})}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {selectedProfile && (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#381163]/40 dark:bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+                <div className="bg-white dark:bg-slate-800 rounded-3xl sm:rounded-[2.5rem] w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-300 custom-scrollbar border border-white dark:border-slate-700">
+                  <div className="p-4 sm:p-6 border-b border-gray-100 dark:border-slate-700 sticky top-0 bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <h3 className="text-xl sm:text-2xl font-black text-[#381163] dark:text-white flex items-center gap-2"><Eye size={24}/> الملف الشخصي للطالب</h3>
+                    <div className="flex gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                       <button onClick={() => handlePrintIDCards([selectedProfile])} className="p-2 bg-indigo-50 dark:bg-indigo-500/20 hover:bg-indigo-500 hover:text-white text-indigo-500 dark:text-indigo-400 rounded-xl sm:rounded-full transition-colors flex items-center gap-2 font-bold px-4 flex-1 sm:flex-none justify-center" title="طباعة كارت الباركود"><QrCode size={18}/> طباعة الكارت</button>
+                       <button onClick={() => setSelectedProfile(null)} className="p-2 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-xl sm:rounded-full text-gray-400 dark:text-gray-300 transition-colors"><X size={20}/></button>
+                    </div>
+                  </div>
+                  <div className="p-5 sm:p-8 space-y-6 sm:space-y-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 bg-gray-50/50 dark:bg-slate-900/50 p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] border border-gray-100 dark:border-slate-700">
+                      <div><p className="text-xs sm:text-sm text-gray-400 font-bold mb-1">الاسم</p><p className="font-black text-base sm:text-lg text-gray-800 dark:text-white">{selectedProfile.name}</p></div>
+                      <div><p className="text-xs sm:text-sm text-gray-400 font-bold mb-1">المرحلة</p><p className="font-bold text-sm sm:text-base text-gray-700 dark:text-gray-300">{selectedProfile.level}</p></div>
+                      <div><p className="text-xs sm:text-sm text-gray-400 font-bold mb-1">الباركود</p><p className="font-black text-[#d1621f] dark:text-orange-400 font-mono tracking-widest text-sm sm:text-base">{selectedProfile.barcode || selectedProfile.phone}</p></div>
+                      <div><p className="text-xs sm:text-sm text-gray-400 font-bold mb-1">تاريخ التسجيل</p><p className="font-bold text-sm sm:text-base text-gray-700 dark:text-gray-300">{selectedProfile.registrationDate || 'غير مسجل'}</p></div>
+                      <div><p className="text-xs sm:text-sm text-gray-400 font-bold mb-1">حالة الملف</p><p className={`font-bold text-sm sm:text-base ${selectedProfile.fileReceived ? 'text-indigo-500 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300'}`}>{selectedProfile.fileReceived ? `مُستلم (#${selectedProfile.fileNumber})` : 'لم يتم الاستلام'}</p></div>
+                      <div><p className="text-xs sm:text-sm text-gray-400 font-bold mb-1">إجمالي الاشتراك</p><p className="font-bold text-sm sm:text-base text-gray-700 dark:text-gray-300">{selectedProfile.totalAmount || 0} ج.م</p></div>
+                      <div><p className="text-xs sm:text-sm text-gray-400 font-bold mb-1">إجمالي المدفوع</p><p className="font-black text-lg sm:text-xl text-emerald-600 dark:text-emerald-400">{selectedProfile.paidAmount || 0} ج.م</p></div>
+                      <div className="sm:col-span-2"><p className="text-xs sm:text-sm text-gray-400 font-bold mb-1">المتبقي (الديون)</p><p className="font-black text-lg sm:text-xl text-red-500 dark:text-red-400">{(Number(selectedProfile.totalAmount||0) - Number(selectedProfile.paidAmount||0)) > 0 ? (Number(selectedProfile.totalAmount||0) - Number(selectedProfile.paidAmount||0)) : 0} ج.م</p></div>
+                      {selectedProfile.notes && <div className="sm:col-span-2 lg:col-span-3 mt-2"><p className="text-xs sm:text-sm text-gray-400 font-bold mb-1">ملاحظات</p><p className="font-bold text-sm sm:text-base text-[#d1621f] dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 p-3 rounded-xl">{selectedProfile.notes}</p></div>}
+                    </div>
+                    <div>
+                      <h4 className="font-black text-base sm:text-lg text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2"><Wallet size={18} className="text-emerald-500"/> السجل المالي</h4>
+                      <div className="bg-white dark:bg-slate-800 border dark:border-slate-700 rounded-2xl overflow-hidden">
+                        <table className="w-full text-right text-xs sm:text-sm">
+                          <thead className="bg-gray-50 dark:bg-slate-700/50 border-b dark:border-slate-700"><tr><th className="p-3 sm:p-4 font-bold text-gray-500 dark:text-gray-400">التاريخ</th><th className="p-3 sm:p-4 font-bold text-gray-500 dark:text-gray-400">المبلغ</th><th className="p-3 sm:p-4 font-bold text-gray-500 dark:text-gray-400">البيان</th></tr></thead>
+                          <tbody>
+                            {transactions.filter(t => t.studentId === selectedProfile.id).length === 0 ? 
+                              <tr><td colSpan="3" className="p-4 text-center text-gray-400 font-bold">لا توجد حركات</td></tr> :
+                              transactions.filter(t => t.studentId === selectedProfile.id).map(t => (
+                              <tr key={t.id} className="border-b dark:border-slate-700 last:border-0"><td className="p-3 sm:p-4 font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap">{t.date}</td><td className="p-3 sm:p-4 font-black text-emerald-600 dark:text-emerald-400">{t.amount} ج</td><td className="p-3 sm:p-4 text-gray-700 dark:text-gray-300 font-medium">{t.description}</td></tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-black text-base sm:text-lg text-gray-700 dark:text-gray-200 mb-4 flex items-center gap-2"><CalendarCheck size={18} className="text-[#d1621f]"/> أيام الحضور</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.keys(attendance).filter(date => attendance[date][selectedProfile.id] === 'present').length === 0 ? 
+                          <p className="text-sm text-gray-400 font-bold w-full text-center py-4 bg-gray-50 dark:bg-slate-800/50 rounded-2xl border dark:border-slate-700">لم يسجل حضور بعد</p> :
+                          Object.keys(attendance).sort((a,b) => new Date(b) - new Date(a)).map(date => {
+                            if(attendance[date][selectedProfile.id] !== 'present') return null;
+                            return <span key={date} className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-black border bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-500/30">{date}</span>
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {payingStudent && (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#381163]/40 dark:bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+                <div className="bg-white dark:bg-slate-800 rounded-3xl sm:rounded-[2.5rem] p-6 sm:p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 border-t-4 border-emerald-500">
+                  <h3 className="text-xl sm:text-2xl font-black text-[#381163] dark:text-white mb-2">استكمال دفع / قسط</h3>
+                  <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 font-bold mb-6">الطالب: <span className="text-[#d1621f] dark:text-orange-400">{payingStudent.name}</span></p>
+                  <form onSubmit={handlePayInstallmentSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">المبلغ المراد دفعه (ج.م)</label>
+                      <input required type="number" min="1" className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-gray-50 dark:bg-slate-900/60 border border-gray-200 dark:border-slate-700 rounded-xl sm:rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500/30 font-black text-lg text-emerald-600 dark:text-emerald-400 dark:bg-slate-900" value={installmentAmount} onChange={e => setInstallmentAmount(e.target.value)} autoFocus />
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                      <button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-base sm:text-lg shadow-lg">تأكيد الدفع</button>
+                      <button type="button" onClick={() => setPayingStudent(null)} className="w-full bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-base sm:text-lg">إلغاء</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {studentToDelete && (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#381163]/40 dark:bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+                <div className="bg-white dark:bg-slate-800 rounded-3xl sm:rounded-[2.5rem] p-6 sm:p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 border-t-4 border-red-500">
+                  <h3 className="text-xl sm:text-2xl font-black text-red-600 dark:text-red-400 mb-2 flex items-center gap-2"><AlertCircle size={24}/> حذف / انسحاب طالب</h3>
+                  <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 font-bold mb-4">الطالب: <span className="text-gray-800 dark:text-white">{studentToDelete.name}</span></p>
+                  <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-gray-50 dark:bg-slate-900/50 rounded-xl sm:rounded-2xl border dark:border-slate-700 flex justify-between items-center">
+                    <span className="font-bold text-sm sm:text-base text-gray-600 dark:text-gray-400">إجمالي المدفوع:</span>
+                    <span className="font-black text-lg sm:text-xl text-emerald-600 dark:text-emerald-400">{studentToDelete.paidAmount || 0} ج.م</span>
+                  </div>
+                  <form onSubmit={handleConfirmDelete} className="space-y-4 sm:space-y-5">
+                    <div>
+                      <label className="block text-xs sm:text-sm font-black text-red-500 dark:text-red-400 mb-2">المبلغ المسترد (إن وُجد - يسجل كمصروف)</label>
+                      <input type="number" min="0" className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-500/30 rounded-xl sm:rounded-2xl outline-none focus:ring-2 focus:ring-red-500/30 font-black text-lg text-red-600 dark:text-red-400" value={refundAmount} onChange={e => setRefundAmount(e.target.value)} />
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-100 dark:border-slate-700">
+                      <button type="submit" className="w-full py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-base sm:text-lg transition-all bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30">تأكيد الحذف</button>
+                      <button type="button" onClick={() => setStudentToDelete(null)} className="w-full bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-white py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-base sm:text-lg">إلغاء</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      };
+
+      const renderAttendance = () => {
+        const todayAttendance = attendance[attendanceDate] || {};
+        const filteredAttendance = students
+          .filter(s => s.name.toLowerCase().includes(searchTermAttendance.toLowerCase()))
+          .filter(s => filterLevelAttendance === 'الكل' || s.level === filterLevelAttendance)
+          .sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+
+        const totalFiltered = filteredAttendance.length;
+        const presentCount = filteredAttendance.filter(s => todayAttendance[s.id] === 'present').length;
+        const absentCount = totalFiltered - presentCount;
+
+        const handleBulkWhatsApp = () => {
+            const absentees = filteredAttendance.filter(s => todayAttendance[s.id] !== 'present');
+            if (absentees.length === 0) return;
+
+            absentees.forEach((student, index) => {
+                setTimeout(() => {
+                    const contactNumber = student.parentPhone || student.phone;
+                    const waMessage = `عذراً، نود إبلاغكم بغياب الطالب/ة (${student.name}) عن حضور حصة اليوم الموافق ${attendanceDate}. برجاء المتابعة. إدارة Center For You`;
+                    const link = formatWhatsAppLink(contactNumber, waMessage);
+                    window.open(link, '_blank');
+                }, index * 800); // تأخير 800 جزء من الثانية لعدم تجميد المتصفح
+            });
+        };
+
+        return (
+          <div className="space-y-4 sm:space-y-6 animate-fade-up relative z-10">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-2 sm:mb-4">
+               <div className="glass-card p-3 sm:p-4 rounded-2xl text-center border-b-4 border-gray-400 dark:border-slate-500">
+                  <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm font-bold">الطلاب بالقائمة</p><p className="text-xl sm:text-2xl font-black text-gray-800 dark:text-white">{totalFiltered}</p>
+               </div>
+               <div className="glass-card p-3 sm:p-4 rounded-2xl text-center border-b-4 border-emerald-500">
+                  <p className="text-emerald-600 dark:text-emerald-400 text-xs sm:text-sm font-bold">حضور</p><p className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400">{presentCount}</p>
+               </div>
+               <div className="glass-card p-3 sm:p-4 rounded-2xl text-center border-b-4 border-red-500">
+                  <p className="text-red-600 dark:text-red-400 text-xs sm:text-sm font-bold">غياب</p><p className="text-xl sm:text-2xl font-black text-red-600 dark:text-red-400">{absentCount}</p>
+               </div>
+            </div>
+
+            <form onSubmit={handleBarcodeScan} className="glass-card p-2 sm:p-3 rounded-2xl sm:rounded-full flex flex-col sm:flex-row items-stretch sm:items-center gap-3 border-2 border-indigo-500/50 focus-within:border-indigo-500 focus-within:shadow-[0_0_20px_rgba(99,102,241,0.2)] transition-all">
+               <div className="bg-indigo-100 dark:bg-indigo-900/50 p-2 sm:p-3 rounded-xl sm:rounded-full text-indigo-600 dark:text-indigo-400 flex justify-center"><ScanLine size={24}/></div>
+               <input 
+                 ref={barcodeInputRef}
+                 type="text" 
+                 autoFocus
+                 value={barcodeInput}
+                 onChange={e => setBarcodeInput(e.target.value)}
+                 placeholder="مرر الباركود هنا لتسجيل الحضور..." 
+                 className="flex-1 bg-transparent border-none outline-none font-black text-lg sm:text-xl text-center sm:text-right text-gray-800 dark:text-white tracking-widest placeholder:text-gray-400 placeholder:text-sm sm:placeholder:text-base placeholder:tracking-normal placeholder:font-bold py-2 sm:py-0" 
+               />
+               {scanMessage.text && (
+                 <span className={`px-4 py-2 rounded-xl sm:rounded-full font-bold text-xs sm:text-sm text-center ${scanMessage.type === 'success' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                   {scanMessage.text}
+                 </span>
+               )}
+            </form>
+
+            <div className="glass-card p-5 sm:p-6 rounded-3xl sm:rounded-[2.5rem] flex flex-col lg:flex-row justify-between items-center gap-4 sm:gap-6">
+              <h2 className="text-2xl sm:text-3xl font-black text-[#381163] dark:text-white flex items-center gap-3 w-full lg:w-auto"><div className="p-2 sm:p-3 bg-[#d1621f]/10 dark:bg-orange-500/10 rounded-xl sm:rounded-2xl"><CalendarCheck size={24} className="text-[#d1621f] dark:text-orange-400 sm:w-7 sm:h-7"/></div> سجل الحضور</h2>
+              <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 w-full lg:w-auto">
+                <div className="relative w-full sm:w-auto flex-1"><Search size={20} className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-gray-400" /><input type="text" placeholder="بحث بالاسم..." value={searchTermAttendance} onChange={(e) => setSearchTermAttendance(e.target.value)} className="w-full pl-4 sm:pl-5 pr-12 sm:pr-14 py-3 sm:py-4 bg-white/50 dark:bg-slate-800/50 border border-white dark:border-slate-700 rounded-2xl sm:rounded-full focus:outline-none focus:ring-2 focus:ring-[#381163]/30 dark:focus:ring-indigo-500 font-bold shadow-sm dark:text-white" /></div>
+                <div className="relative w-full sm:w-auto flex-1"><Filter size={20} className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-gray-400" /><select value={filterLevelAttendance} onChange={(e) => setFilterLevelAttendance(e.target.value)} className="w-full pl-8 sm:pl-10 pr-12 sm:pr-14 py-3 sm:py-4 bg-white/50 dark:bg-slate-800/50 border border-white dark:border-slate-700 rounded-2xl sm:rounded-full focus:outline-none focus:ring-2 focus:ring-[#381163]/30 dark:focus:ring-indigo-500 font-bold shadow-sm appearance-none cursor-pointer dark:text-white"><option value="الكل">كل المراحل</option><option value="معادلة معهد">معادلة معهد</option><option value="معادلة دبلوم">معادلة دبلوم</option></select></div>
+                <input type="date" value={attendanceDate} onChange={(e) => setAttendanceDate(e.target.value)} className="w-full sm:w-auto bg-white/80 dark:bg-slate-800 border border-white dark:border-slate-700 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl sm:rounded-full font-black text-[#381163] dark:text-indigo-300 shadow-sm outline-none cursor-pointer" />
+                <button onClick={() => {
+                  const headers = ['الاسم', 'المرحلة', 'حالة الحضور', 'التاريخ'];
+                  const data = filteredAttendance.map(s => [s.name, s.level, todayAttendance[s.id] === 'present' ? 'حاضر' : (todayAttendance[s.id] === 'absent' ? 'غائب' : 'لم يُسجل'), attendanceDate]);
+                  exportToCSV(`الغياب_${attendanceDate}`, headers, data);
+                }} className="w-full sm:w-auto justify-center bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-slate-700 hover:bg-emerald-50 dark:hover:bg-slate-700 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl sm:rounded-full flex items-center gap-2 font-bold transition-all shadow-sm"><FileSpreadsheet size={20} className="sm:w-[22px] sm:h-[22px]"/> <span className="sm:inline">تصدير للغياب</span></button>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row flex-wrap justify-end gap-2 sm:gap-3">
+               <button onClick={() => setShowWhatsAppModal(true)} className="w-full sm:w-auto justify-center bg-[#25D366] hover:bg-[#128C7E] text-white px-4 sm:px-6 py-3 rounded-2xl sm:rounded-full font-bold transition-colors flex items-center gap-2 shadow-lg shadow-[#25D366]/30"><Smartphone size={18}/> مراسلة الغائبين</button>
+               <button onClick={() => markAllAttendance('present')} className="w-full sm:w-auto justify-center bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-500 dark:hover:text-white px-4 sm:px-6 py-3 rounded-2xl sm:rounded-full font-bold transition-colors flex items-center gap-2"><CheckCircle size={18}/> تسجيل الكل حضور</button>
+               <button onClick={() => markAllAttendance(null)} className="w-full sm:w-auto justify-center bg-red-50 dark:bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 dark:hover:text-white px-4 sm:px-6 py-3 rounded-2xl sm:rounded-full font-bold transition-colors flex items-center gap-2"><X size={18}/> إلغاء حضور الكل</button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+              {filteredAttendance.map(student => {
+                const isPresent = todayAttendance[student.id] === 'present';
+                return (
+                  <div key={student.id} className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-[2rem] relative overflow-hidden group">
+                    <div className={`absolute top-0 right-0 w-2 h-full transition-colors ${isPresent ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'bg-gray-200 dark:bg-slate-700'}`}></div>
+                    <h3 className="font-black text-lg sm:text-xl text-gray-800 dark:text-white mb-1 truncate">{student.name}</h3>
+                    <p className="text-xs sm:text-sm font-bold text-gray-500 dark:text-gray-400 mb-4 sm:mb-5">{student.level}</p>
+                    <button 
+                      onClick={() => handleAttendanceChange(student.id, isPresent ? null : 'present')} 
+                      className={`w-full py-2.5 sm:py-3 rounded-xl font-black text-xs sm:text-sm transition-all flex justify-center items-center gap-2 ${isPresent ? 'bg-emerald-500 text-white shadow-md' : 'bg-white dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700 text-gray-500 dark:text-gray-400 hover:border-emerald-500 dark:hover:border-emerald-500 hover:text-emerald-500 dark:hover:text-emerald-400'}`}
+                    >
+                      {isPresent ? '✔ تم تسجيل الحضور' : 'تسجيل حضور يدوياً'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {showWhatsAppModal && (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#381163]/40 dark:bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+                <div className="bg-white dark:bg-slate-800 rounded-3xl sm:rounded-[2.5rem] w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl animate-in zoom-in-95 border-t-4 border-[#25D366]">
+                  
+                  {}
+                  <div className="p-4 sm:p-6 border-b border-gray-100 dark:border-slate-700 flex flex-col gap-4">
+                    <div className="flex justify-between items-center">
+                        <h3 className="text-xl sm:text-2xl font-black text-[#25D366] flex items-center gap-2"><MessageCircle size={24}/> مراسلة الغائبين اليوم</h3>
+                        <button onClick={() => setShowWhatsAppModal(false)} className="p-2 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 rounded-xl sm:rounded-full text-gray-400 transition-colors"><X size={20}/></button>
+                    </div>
+                    <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-500/30 p-3 sm:p-4 rounded-xl sm:rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <p className="text-sm font-bold text-emerald-800 dark:text-emerald-300 flex-1 leading-relaxed">
+                           لإرسال الرسائل للجميع بضغطة واحدة، سيقوم النظام بفتح محادثات الواتساب تباعاً. <br/> <span className="text-red-500 text-xs sm:text-sm">⚠️ يرجى التأكد من السماح بالنوافذ المنبثقة (Allow Pop-ups) في متصفحك.</span>
+                        </p>
+                        <button onClick={handleBulkWhatsApp} className="w-full sm:w-auto justify-center bg-[#25D366] hover:bg-[#128C7E] text-white px-5 py-3 rounded-xl font-black transition-all flex items-center gap-2 text-sm shadow-md whitespace-nowrap">
+                           <Send size={18}/> إرسال للكل دفعة واحدة
+                        </button>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                    {filteredAttendance.filter(s => todayAttendance[s.id] !== 'present').length === 0 ? (
+                      <div className="text-center py-10 text-gray-400 font-bold">لا يوجد طلاب غائبين في الفلتر الحالي!</div>
+                    ) : (
+                      <div className="space-y-3">
+                        {filteredAttendance.filter(s => todayAttendance[s.id] !== 'present').map(student => {
+                          const contactNumber = student.parentPhone || student.phone;
+                          const waMessage = `عذراً، نود إبلاغكم بغياب الطالب/ة (${student.name}) عن حضور حصة اليوم الموافق ${attendanceDate}. برجاء المتابعة. إدارة Center For You`;
+                          const link = formatWhatsAppLink(contactNumber, waMessage);
+                          return (
+                            <div key={student.id} className="bg-gray-50 dark:bg-slate-900/50 p-3 sm:p-4 rounded-xl sm:rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border border-gray-100 dark:border-slate-700">
+                               <div>
+                                 <p className="font-bold text-sm sm:text-base text-gray-800 dark:text-white">{student.name}</p>
+                                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{contactNumber}</p>
+                               </div>
+                               <a href={link} target="_blank" className="w-full sm:w-auto justify-center bg-[#25D366] hover:bg-[#128C7E] text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-bold flex items-center gap-2 transition-all"><Send size={16}/> إرسال</a>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      };
+
+      const renderFiles = () => {
+        const filteredFilesStudents = students
+          .filter(s => s.name.toLowerCase().includes(searchTermFiles.toLowerCase()))
+          .filter(s => filterLevelFiles === 'الكل' || s.level === filterLevelFiles)
+          .sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+
+        const receivedCount = filteredFilesStudents.filter(s => s.fileReceived).length;
+
+        return (
+          <div className="space-y-4 sm:space-y-6 animate-fade-up relative z-10">
+            <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-2 sm:mb-4">
+               <div className="glass-card p-3 sm:p-4 rounded-2xl text-center border-b-4 border-gray-400 dark:border-slate-500">
+                  <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm font-bold">الطلاب بالقائمة</p>
+                  <p className="text-xl sm:text-2xl font-black text-gray-800 dark:text-white">{filteredFilesStudents.length}</p>
+               </div>
+               <div className="glass-card p-3 sm:p-4 rounded-2xl text-center border-b-4 border-indigo-500">
+                  <p className="text-indigo-600 dark:text-indigo-400 text-xs sm:text-sm font-bold">ملفات تم استلامها</p>
+                  <p className="text-xl sm:text-2xl font-black text-indigo-600 dark:text-indigo-400">{receivedCount}</p>
+               </div>
+            </div>
+
+            <div className="glass-card p-5 sm:p-6 rounded-3xl sm:rounded-[2.5rem] flex flex-col lg:flex-row justify-between items-center gap-4 sm:gap-6">
+            <h2 className="text-2xl sm:text-3xl font-black text-[#381163] dark:text-white flex items-center gap-3 w-full lg:w-auto">
+              <div className="p-2 sm:p-3 bg-indigo-50 dark:bg-indigo-500/20 rounded-xl sm:rounded-2xl">
+                <FileText size={24} className="text-indigo-600 dark:text-indigo-400 sm:w-7 sm:h-7"/>
+              </div> 
+              سجل الملفات
+            </h2>
+            <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 w-full lg:w-auto">
+              <div className="relative w-full sm:w-auto flex-1">
+                <Search size={20} className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input type="text" placeholder="بحث بالاسم..." value={searchTermFiles} onChange={(e) => setSearchTermFiles(e.target.value)} className="w-full pl-4 sm:pl-5 pr-12 sm:pr-14 py-3 sm:py-4 bg-white/50 dark:bg-slate-800/50 border border-white dark:border-slate-700 rounded-2xl sm:rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:focus:ring-indigo-500 font-bold shadow-sm dark:text-white" />
+              </div>
+              <div className="relative w-full sm:w-auto flex-1">
+                <Filter size={20} className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <select value={filterLevelFiles} onChange={(e) => setFilterLevelFiles(e.target.value)} className="w-full pl-8 sm:pl-10 pr-12 sm:pr-14 py-3 sm:py-4 bg-white/50 dark:bg-slate-800/50 border border-white dark:border-slate-700 rounded-2xl sm:rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500/30 dark:focus:ring-indigo-500 font-bold shadow-sm appearance-none cursor-pointer dark:text-white">
+                  <option value="الكل">كل المراحل</option><option value="معادلة معهد">معادلة معهد</option><option value="معادلة دبلوم">معادلة دبلوم</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+              {filteredFilesStudents.map(student => {
+                const hasFile = student.fileReceived;
+                return (
+                  <div key={student.id} className="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-[2rem] relative overflow-hidden group">
+                    <div className={`absolute top-0 right-0 w-2 h-full transition-colors ${hasFile ? 'bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.5)]' : 'bg-gray-200 dark:bg-slate-700'}`}></div>
+                    <h3 className="font-black text-lg sm:text-xl text-gray-800 dark:text-white mb-1 truncate">{student.name}</h3>
+                    <p className="text-xs sm:text-sm font-bold text-gray-500 dark:text-gray-400 mb-4 sm:mb-5">{student.level}</p>
+                    
+                    {hasFile ? (
+                       <div className="mb-4 p-2 sm:p-3 bg-indigo-50 dark:bg-indigo-500/20 rounded-xl flex items-center justify-between">
+                         <span className="text-indigo-600 dark:text-indigo-400 font-bold text-xs sm:text-sm">رقم الملف:</span>
+                         <span className="font-black text-base sm:text-lg text-indigo-700 dark:text-indigo-300">#{student.fileNumber}</span>
+                       </div>
+                    ) : (
+                       <div className="mb-4 p-2 sm:p-3 bg-gray-50 dark:bg-slate-800/50 rounded-xl text-center">
+                         <span className="text-gray-400 dark:text-gray-500 font-bold text-xs sm:text-sm">لم يتم الاستلام</span>
+                       </div>
+                    )}
+
+                    <button 
+                      onClick={() => handleToggleFile(student)} 
+                      className={`w-full py-2.5 sm:py-3 rounded-xl font-black text-xs sm:text-sm transition-all flex justify-center items-center gap-2 ${hasFile ? 'bg-white dark:bg-slate-800 border-2 border-indigo-100 dark:border-slate-700 text-indigo-500 dark:text-indigo-400 hover:border-red-500 hover:text-red-500' : 'bg-indigo-500 text-white shadow-md hover:bg-indigo-600'}`}
+                    >
+                      {hasFile ? 'إلغاء الاستلام' : 'استلام الملف'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      };
+
+      const renderFinancials = () => (
+        <div className="space-y-4 sm:space-y-6 animate-fade-up relative z-10">
+          {monthlySummary.length > 0 && (
+             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-2">
+                {monthlySummary.slice(0, 4).map((data) => (
+                   <div key={data.raw} className="glass-card px-3 py-3 sm:px-5 sm:py-4 rounded-2xl sm:rounded-3xl flex flex-col sm:flex-row sm:justify-between items-start sm:items-center border-r-4 border-indigo-500 gap-1 sm:gap-0">
+                      <div>
+                        <p className="text-xs sm:text-sm font-black text-gray-400 dark:text-gray-500 mb-0.5 sm:mb-1">{data.name}</p>
+                        <div className="flex gap-2 sm:gap-3 text-[10px] sm:text-xs">
+                           <span className="text-emerald-500 font-bold">إ: {data.income}</span>
+                           <span className="text-red-500 font-bold">م: {data.expense}</span>
+                        </div>
+                      </div>
+                      <div className="text-left font-black text-lg sm:text-xl text-[#381163] dark:text-white mt-1 sm:mt-0">
+                        {(data.income - data.expense)}<span className="text-[10px] sm:text-xs font-normal text-gray-400 mr-1">ج</span>
+                      </div>
+                   </div>
+                ))}
+             </div>
+          )}
+
+          <div className="glass-card p-5 sm:p-6 rounded-3xl sm:rounded-[2.5rem] flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6">
+            <h2 className="text-2xl sm:text-3xl font-black text-[#381163] dark:text-white flex items-center gap-3 w-full sm:w-auto"><div className="p-2 sm:p-3 bg-emerald-50 dark:bg-emerald-500/20 rounded-xl sm:rounded-2xl"><Wallet size={24} className="text-emerald-600 dark:text-emerald-400 sm:w-7 sm:h-7"/></div> الخزينة</h2>
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 w-full sm:w-auto justify-end items-center">
+              <div className="relative w-full sm:w-auto flex-1">
+                <Search size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input type="text" placeholder="بحث بالوصف/الطالب..." value={searchTermFinancials} onChange={(e) => setSearchTermFinancials(e.target.value)} className="w-full pl-4 pr-12 py-3 bg-white/50 dark:bg-slate-800/50 border border-white dark:border-slate-700 rounded-2xl sm:rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:focus:ring-emerald-500 font-bold shadow-sm dark:text-white" />
+              </div>
+              
+              <div className="flex items-center bg-white/50 dark:bg-slate-800/50 border border-white dark:border-slate-700 rounded-2xl sm:rounded-full px-3 sm:px-4 py-3 shadow-sm gap-2 font-bold w-full sm:w-auto">
+                 <span className="text-gray-400 text-xs sm:text-sm whitespace-nowrap">من:</span>
+                 <input type="date" className="bg-transparent outline-none text-xs sm:text-sm text-[#381163] dark:text-indigo-300 cursor-pointer w-full" value={dateFilter.start} onChange={e => setDateFilter({...dateFilter, start: e.target.value})} />
+                 <span className="text-gray-400 text-xs sm:text-sm border-r dark:border-slate-600 pr-1 sm:pr-2 whitespace-nowrap">إلى:</span>
+                 <input type="date" className="bg-transparent outline-none text-xs sm:text-sm text-[#381163] dark:text-indigo-300 cursor-pointer w-full" value={dateFilter.end} onChange={e => setDateFilter({...dateFilter, end: e.target.value})} />
+                 {(dateFilter.start || dateFilter.end) && <button onClick={() => setDateFilter({start:'', end:''})} className="text-red-400 hover:text-red-600 bg-red-50 dark:bg-red-500/20 p-1 rounded-full shrink-0"><X size={16}/></button>}
+              </div>
+              <div className="flex w-full sm:w-auto gap-2">
+                <button onClick={() => {
+                  const headers = ['التاريخ', 'النوع', 'المبلغ', 'البيان', 'الطالب المرتبط'];
+                  const data = filteredTransactionsForFinancials.map(t => [t.date, t.type === 'income' ? 'إيراد' : 'مصروف', t.amount, t.description, t.studentId ? (students.find(s=>s.id===t.studentId)?.name || '') : '']);
+                  exportToCSV('المالية', headers, data);
+                }} className="flex-1 sm:flex-none justify-center bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-slate-700 hover:bg-emerald-50 dark:hover:bg-slate-700 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl sm:rounded-full flex items-center gap-2 font-bold transition-all shadow-sm"><FileSpreadsheet size={20} className="sm:w-[22px] sm:h-[22px]"/> إكسيل</button>
+                <button onClick={() => setShowTransactionForm(!showTransactionForm)} className="flex-[2] sm:flex-none justify-center bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-4 sm:px-8 py-3 sm:py-4 rounded-2xl sm:rounded-full font-black flex items-center gap-2 hover:shadow-lg hover:-translate-y-1 transition-all whitespace-nowrap"><Plus size={20} className="sm:w-[22px] sm:h-[22px]"/> حركة</button>
+              </div>
+            </div>
+          </div>
+
+          {showTransactionForm && (
+            <form onSubmit={handleAddTransaction} className="glass-card p-5 sm:p-8 rounded-3xl sm:rounded-[2.5rem] border-t-4 border-emerald-500 animate-fade-up grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
+               <div className="space-y-2"><label className="text-gray-600 dark:text-gray-300 font-bold ml-2 text-sm sm:text-base">نوع الحركة</label><select className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-white/80 dark:bg-slate-900/60 border-0 dark:border dark:border-slate-700 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-emerald-500/30 font-bold dark:text-white" value={newTransaction.type} onChange={e => setNewTransaction({...newTransaction, type: e.target.value})}><option value="income">🟢 إيراد (مقبوضات)</option><option value="expense">🔴 مصروف (مدفوعات)</option></select></div>
+               <div className="space-y-2"><label className="text-gray-600 dark:text-gray-300 font-bold ml-2 text-sm sm:text-base">المبلغ (ج.م)</label><input required type="number" className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-white/80 dark:bg-slate-900/60 border-0 dark:border dark:border-slate-700 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-emerald-500/30 font-black text-lg dark:text-white" value={newTransaction.amount} onChange={e => setNewTransaction({...newTransaction, amount: e.target.value})} /></div>
+               <div className="space-y-2"><label className="text-gray-600 dark:text-gray-300 font-bold ml-2 text-sm sm:text-base">التاريخ</label><input required type="date" className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-white/80 dark:bg-slate-900/60 border-0 dark:border dark:border-slate-700 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-emerald-500/30 font-bold dark:text-white" value={newTransaction.date} onChange={e => setNewTransaction({...newTransaction, date: e.target.value})} /></div>
+               <div className="space-y-2"><label className="text-gray-600 dark:text-gray-300 font-bold ml-2 text-sm sm:text-base">البيان (الوصف)</label><input required type="text" placeholder="مثال: قسط فلان، فاتورة كهرباء" className="w-full px-4 sm:px-5 py-3 sm:py-4 bg-white/80 dark:bg-slate-900/60 border-0 dark:border dark:border-slate-700 rounded-xl sm:rounded-2xl focus:ring-2 focus:ring-emerald-500/30 font-bold dark:text-white" value={newTransaction.description} onChange={e => setNewTransaction({...newTransaction, description: e.target.value})} /></div>
+               <div className="xl:col-span-4 flex justify-end mt-2"><button type="submit" className="w-full md:w-auto justify-center bg-emerald-500 text-white px-8 sm:px-10 py-3 sm:py-4 rounded-xl sm:rounded-full font-black text-base sm:text-lg shadow-lg hover:-translate-y-1 transition-all">حفظ الحركة</button></div>
+            </form>
+          )}
+
+          <div className="glass-card rounded-3xl sm:rounded-[2.5rem] overflow-hidden shadow-sm">
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full text-right min-w-[850px]">
+                <thead className="bg-[#381163]/5 dark:bg-slate-800 border-b border-[#381163]/10 dark:border-slate-700">
+                  <tr><th className="px-6 sm:px-8 py-4 sm:py-6 font-black text-[#381163] dark:text-indigo-300">التاريخ</th><th className="px-6 sm:px-8 py-4 sm:py-6 font-black text-[#381163] dark:text-indigo-300">النوع</th><th className="px-6 sm:px-8 py-4 sm:py-6 font-black text-[#381163] dark:text-indigo-300">المبلغ</th><th className="px-6 sm:px-8 py-4 sm:py-6 font-black text-[#381163] dark:text-indigo-300">البيان</th><th className="px-6 sm:px-8 py-4 sm:py-6 font-black text-[#381163] dark:text-indigo-300 text-center">إجراء</th></tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100/50 dark:divide-slate-700/50">
+                  {filteredTransactionsForFinancials.length === 0 ? 
+                    <tr><td colSpan="5" className="p-6 sm:p-8 text-center text-gray-500 dark:text-gray-400 font-bold">لا توجد حركات مطابقة لبحثك في هذه الفترة</td></tr> :
+                  filteredTransactionsForFinancials.map(t => {
+                    const studentName = t.studentId ? students.find(s => s.id === t.studentId)?.name : null;
+                    return (
+                    <tr key={t.id} className="hover:bg-white/60 dark:hover:bg-slate-800/40 transition-colors">
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 font-bold text-gray-500 dark:text-gray-400 text-sm sm:text-base">{t.date}</td>
+                      <td className="px-6 sm:px-8 py-4 sm:py-5">{t.type === 'income' ? <span className="text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/20 px-3 sm:px-4 py-1.5 rounded-full font-black text-xs sm:text-sm">إيراد ↗</span> : <span className="text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-500/20 px-3 sm:px-4 py-1.5 rounded-full font-black text-xs sm:text-sm">مصروف ↙</span>}</td>
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 font-black text-lg sm:text-xl">{t.amount} <span className="text-xs sm:text-sm font-bold text-gray-400 dark:text-gray-500">ج</span></td>
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 font-bold text-gray-700 dark:text-gray-300 text-sm sm:text-base">{t.description} {studentName && <span className="text-indigo-500 text-[10px] sm:text-xs mr-2 bg-indigo-50 dark:bg-indigo-500/20 px-2 py-1 rounded inline-block mt-1 sm:mt-0">طالب: {studentName}</span>}</td>
+                      <td className="px-6 sm:px-8 py-4 sm:py-5 text-center whitespace-nowrap">
+                        {t.type === 'income' && <button onClick={() => handlePrintReceipt(t, studentName)} className="mx-0.5 sm:mx-1 p-2 sm:p-3 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-lg sm:rounded-xl transition-colors inline-flex" title="طباعة إيصال"><Printer size={16} className="sm:w-[18px] sm:h-[18px]"/></button>}
+                        <button onClick={() => handleDeleteTransaction(t.id)} className="mx-0.5 sm:mx-1 p-2 sm:p-3 bg-red-50 dark:bg-red-500/20 text-red-500 dark:text-red-400 hover:bg-red-500 hover:text-white rounded-lg sm:rounded-xl transition-colors inline-flex" title="حذف"><Trash2 size={16} className="sm:w-[18px] sm:h-[18px]"/></button>
+                      </td>
+                    </tr>
+                  )})}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+
+      if (!isLoggedIn) return <LoginScreen />;
+
+      return (
+        <div className="min-h-screen relative" dir="rtl">
+          <div className="fixed inset-0 pointer-events-none flex items-center justify-center z-0">
+             <img src={LOGO_URL} alt="Watermark" className="w-[300px] md:w-[500px] object-contain opacity-5 dark:opacity-[0.03] grayscale hover:grayscale-0 transition-all duration-1000" />
+          </div>
+
+          <header className="hidden md:flex sticky top-6 z-40 mx-6 bg-white/70 dark:bg-slate-900/80 backdrop-blur-2xl border border-white dark:border-slate-700 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-full px-8 py-4 justify-between items-center">
+            <div className="flex items-center gap-4">
+              <div className="h-12 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-2xl shadow-sm flex items-center justify-center">
+                 <img src={LOGO_URL} alt="Logo" className="h-full w-auto object-contain" />
+              </div>
+              <h1 className="text-2xl font-black text-[#381163] dark:text-white tracking-tight">Center<span className="text-[#d1621f] dark:text-orange-400">4U</span></h1>
+            </div>
+            <nav className="flex gap-2">
+              <button onClick={() => setActiveTab('dashboard')} className={`px-6 py-3 rounded-full font-bold transition-all flex items-center gap-2 ${activeTab === 'dashboard' ? 'bg-[#381163] dark:bg-indigo-600 text-white shadow-lg' : 'text-gray-500 dark:text-gray-400 hover:bg-white/80 dark:hover:bg-slate-800'}`}><LayoutDashboard size={20}/> الرئيسية</button>
+              <button onClick={() => setActiveTab('students')} className={`px-6 py-3 rounded-full font-bold transition-all flex items-center gap-2 ${activeTab === 'students' ? 'bg-[#381163] dark:bg-indigo-600 text-white shadow-lg' : 'text-gray-500 dark:text-gray-400 hover:bg-white/80 dark:hover:bg-slate-800'}`}><Users size={20}/> الطلاب</button>
+              <button onClick={() => setActiveTab('attendance')} className={`px-6 py-3 rounded-full font-bold transition-all flex items-center gap-2 ${activeTab === 'attendance' ? 'bg-[#381163] dark:bg-indigo-600 text-white shadow-lg' : 'text-gray-500 dark:text-gray-400 hover:bg-white/80 dark:hover:bg-slate-800'}`}><CalendarCheck size={20}/> الحضور</button>
+              <button onClick={() => setActiveTab('files')} className={`px-6 py-3 rounded-full font-bold transition-all flex items-center gap-2 ${activeTab === 'files' ? 'bg-[#381163] dark:bg-indigo-600 text-white shadow-lg' : 'text-gray-500 dark:text-gray-400 hover:bg-white/80 dark:hover:bg-slate-800'}`}><FileText size={20}/> الملفات</button>
+              <button onClick={() => setActiveTab('financials')} className={`px-6 py-3 rounded-full font-bold transition-all flex items-center gap-2 ${activeTab === 'financials' ? 'bg-[#381163] dark:bg-indigo-600 text-white shadow-lg' : 'text-gray-500 dark:text-gray-400 hover:bg-white/80 dark:hover:bg-slate-800'}`}><Wallet size={20}/> المالية</button>
+            </nav>
+            <div className="flex items-center gap-2">
+              <button onClick={handleLocalBackup} title="نسخ احتياطي محلي للبيانات" className="p-3 bg-emerald-50 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/40 rounded-full transition-all flex items-center gap-2 font-bold shadow-sm">
+                 <Database size={20} />
+              </button>
+              <button onClick={toggleTheme} title="تغيير المظهر" className="p-3 bg-indigo-50 dark:bg-slate-800 text-[#381163] dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-slate-700 rounded-full transition-all flex items-center gap-2 font-bold shadow-sm">
+                 {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
+              <button onClick={handleLogout} title="تسجيل الخروج" className="p-3 bg-red-50 dark:bg-red-500/20 text-red-500 dark:text-red-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 dark:hover:text-white rounded-full transition-all flex items-center gap-2 font-bold shadow-sm">
+                 <LogOut size={20} />
+              </button>
+            </div>
+          </header>
+
+          <nav className="md:hidden fixed bottom-4 left-2 right-2 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-white/50 dark:border-slate-700 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] rounded-[2rem] p-2 flex justify-between items-center px-2 overflow-x-auto custom-scrollbar gap-1">
+              <button onClick={() => setActiveTab('dashboard')} className={`p-2 sm:p-3 min-w-[55px] rounded-[1.5rem] flex flex-col items-center gap-1 transition-all ${activeTab === 'dashboard' ? 'bg-[#381163] dark:bg-indigo-600 text-white shadow-md -translate-y-1' : 'text-gray-400 dark:text-gray-500'}`}><LayoutDashboard size={20}/><span className="text-[10px] font-black">الرئيسية</span></button>
+              <button onClick={() => setActiveTab('students')} className={`p-2 sm:p-3 min-w-[55px] rounded-[1.5rem] flex flex-col items-center gap-1 transition-all ${activeTab === 'students' ? 'bg-[#381163] dark:bg-indigo-600 text-white shadow-md -translate-y-1' : 'text-gray-400 dark:text-gray-500'}`}><Users size={20}/><span className="text-[10px] font-black">الطلاب</span></button>
+              <button onClick={() => setActiveTab('attendance')} className={`p-2 sm:p-3 min-w-[55px] rounded-[1.5rem] flex flex-col items-center gap-1 transition-all ${activeTab === 'attendance' ? 'bg-[#381163] dark:bg-indigo-600 text-white shadow-md -translate-y-1' : 'text-gray-400 dark:text-gray-500'}`}><CalendarCheck size={20}/><span className="text-[10px] font-black">الحضور</span></button>
+              <button onClick={() => setActiveTab('files')} className={`p-2 sm:p-3 min-w-[55px] rounded-[1.5rem] flex flex-col items-center gap-1 transition-all ${activeTab === 'files' ? 'bg-[#381163] dark:bg-indigo-600 text-white shadow-md -translate-y-1' : 'text-gray-400 dark:text-gray-500'}`}><FileText size={20}/><span className="text-[10px] font-black">الملفات</span></button>
+              <button onClick={() => setActiveTab('financials')} className={`p-2 sm:p-3 min-w-[55px] rounded-[1.5rem] flex flex-col items-center gap-1 transition-all ${activeTab === 'financials' ? 'bg-[#381163] dark:bg-indigo-600 text-white shadow-md -translate-y-1' : 'text-gray-400 dark:text-gray-500'}`}><Wallet size={20}/><span className="text-[10px] font-black">المالية</span></button>
+              
+              <div className="flex gap-0.5 border-r border-gray-200 dark:border-slate-700 pr-1 ml-1">
+                <button onClick={handleLocalBackup} className="p-2 sm:p-3 rounded-[1.5rem] flex flex-col items-center gap-1 transition-all text-emerald-500 dark:text-emerald-400"><Database size={20}/></button>
+                <button onClick={toggleTheme} className="p-2 sm:p-3 rounded-[1.5rem] flex flex-col items-center gap-1 transition-all text-[#381163] dark:text-indigo-400"><div className="animate-pulse">{isDarkMode ? <Sun size={20}/> : <Moon size={20}/>}</div></button>
+                <button onClick={handleLogout} className="p-2 sm:p-3 rounded-[1.5rem] flex flex-col items-center gap-1 transition-all text-red-400 hover:text-red-600"><LogOut size={20}/></button>
+              </div>
+          </nav>
+
+          <main className="px-4 sm:px-6 pt-6 sm:pt-8 pb-32 md:pb-12 w-full max-w-7xl mx-auto overflow-x-hidden">
+            {activeTab === 'dashboard' && renderDashboard()}
+            {activeTab === 'students' && renderStudents()}
+            {activeTab === 'attendance' && renderAttendance()}
+            {activeTab === 'files' && renderFiles()}
+            {activeTab === 'financials' && renderFinancials()}
+          </main>
+
+          {/* Custom Confirm Modal Layer */}
+          {confirmModal.isOpen && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#381163]/40 dark:bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+              <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 border-t-4 border-[#d1621f]">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-orange-50 dark:bg-orange-500/20 text-[#d1621f] dark:text-orange-400 rounded-full flex items-center justify-center mb-4"><HelpCircle size={32}/></div>
+                  <h3 className="text-2xl font-black text-gray-800 dark:text-white mb-6 leading-relaxed">{confirmModal.text}</h3>
+                </div>
+                <div className="flex gap-3 mt-2">
+                  <button onClick={() => { confirmModal.onConfirm(); setConfirmModal({isOpen: false, text: '', onConfirm: null}); }} className="flex-1 bg-gradient-to-r from-[#d1621f] to-[#e87a35] hover:shadow-lg text-white py-4 rounded-2xl font-black text-lg transition-all hover:-translate-y-1">تأكيد</button>
+                  <button onClick={() => setConfirmModal({isOpen: false, text: '', onConfirm: null})} className="flex-1 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-white py-4 rounded-2xl font-black text-lg transition-colors">إلغاء</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
